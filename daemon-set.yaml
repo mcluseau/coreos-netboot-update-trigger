@@ -1,0 +1,40 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  namespace: coreos-system
+  name: netboot-update-trigger
+spec:
+  revisionHistoryLimit: 10
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: coreos-netboot-update-trigger
+    spec:
+      hostNetwork: true
+      nodeSelector:
+        container-linux-update.v1.coreos.com/id: coreos
+      containers:
+      - name: coreos-netboot-update-trigger
+        image: docker-registry.isi/coreos-netboot-update-trigger:v0.1.2
+        args:
+        - -version-url=http://serveur.isi/coreos/amd64-usr/current/version.txt
+        volumeMounts:
+        - mountPath: /var/run/dbus
+          name: var-run-dbus
+        - mountPath: /etc/os-release
+          name: etc-os-release
+        - mountPath: /coreos
+          name: coreos
+
+      volumes:
+      - hostPath:
+          path: /var/run/dbus
+        name: var-run-dbus
+      - hostPath:
+          path: /etc/os-release
+        name: etc-os-release
+      - hostPath:
+          path: /usr
+        name: coreos
